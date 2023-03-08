@@ -1,0 +1,414 @@
+imageRepository: "image-registry.openshift-image-registry.svc:5000/asiabilling-testbed/"
+#imagePullSecrets: "imageRegistrySecret"
+uniPass: ""
+
+db:
+    # Shared Database Connection details
+    # Host name or IP Address of Database Server
+    host: 10.95.218.23
+    # Port number of Database Server
+    port: 1539
+    # Name of the DB system administrator
+    user: sys
+    # Password of the DB system administrator
+    password: T3JhUGFzc3dkMQ==
+    # Service Name which identifies DB
+    serviceName: TBPPIN01
+    # Role assigned to this DBA user
+    role: sysdba
+
+ocbrm:
+    imagePullPolicy: IfNotPresent
+    # Set isAmt: true , if AMT is going to be used
+    isAmt: false
+    # Set ece_deployed: false , if ECE is not going to be deployed
+    ece_deployed: true
+    # Set use_oracle_brm_images: false , if custom docker images are built
+    use_oracle_brm_images: true
+    # Set existing_rootkey_wallet: true , if existing database is used (non init-db ) or if exisiting root-key wallet is used.
+    existing_rootkey_wallet: false
+    # Set is_upgrade flag to true for DB upgrade from PS3 to PS4, else set to false for fresh db initialization.
+    is_upgrade: false
+    TZ: UTC
+    LOG_LEVEL: 1
+    # SSL is enabled when set to true and disabled when set to false
+    isSSLEnabled: true
+    # Disables SSL from CM to DM/EM. When set to true set isSSLEnabled = true
+    cmSSLTermination: false
+    # Set customSSLWallet to true, when using custom TLS certificate for CM. Set cmSSLTermination to true as well.
+    # The wallet containing the custom TLS certificate needs to placed at top level of the helm chart
+    customSSLWallet: false
+    # To enable autoscaling set isHPAEnabled to true.
+    isHPAEnabled: false
+    # To enable Security Context in the cluster set EnableSecurityContext to true.
+    EnableSecurityContext: false
+    # Set root_key_rotate: true to rotate BRM Root Key
+    root_key_rotate: false
+    brm_root_pass: UGFzc3cwcmQxMjM0Iw== 
+    # Set rotate_password: true to change BRM Root Password
+    rotate_password: false 
+    new_brm_root_password: ""     
+    wallet:
+        client: UGFzc3cwcmQq
+        server: UGFzc3cwcmQq
+        root: UGFzc3cwcmQq
+    cm:
+        isEnabled: true
+        deployment:
+            replicaCount: 1
+            imageName: common/brm/cm
+            imageTag: development
+            perflib_enabled: false
+            enable_publish: 1
+    eai_js:
+        deployment:
+            imageName: eai_js
+            imageTag: 12.0.0.5.0
+            eaiConfigFile: payloadconfig_ifw_sync.xml
+    monitoring:
+        prometheus:
+            jmx_exporter: 
+                enable: false
+            operator:
+                enable: true
+                #Namespace where Prometheus Operator is deployed
+                namespace: monitoring
+    dm_oracle:
+        isEnabled: true
+        deployment:
+            replicaCount: 1
+            imageName: dm_oracle
+            imageTag: 12.0.0.5.0
+            dm_debug: "0x0001"
+            dm_debug2: "0x001"
+            dm_debug3: "0x001"
+            perflib_enabled: false
+
+    storage_class:
+        name: managed-app-nfs-storage-app
+    
+    virtual_time:
+        enabled: false
+        sync_pvt_time: 60
+        storage: 50Mi
+
+    db:
+        deployment:
+            imageName: init_db
+            imageTag: 12.0.0.5.0
+        host: 10.95.218.23
+        port: 1539 
+        service: TBPPIN01
+        enable_partition: 'No'
+        schemauser: pin
+        schemapass: cGFzc3cwcmQ=
+        schematablespace: pin00
+        indextablespace: pinx00
+        pipelineschemauser: pin
+        pipelineschemapass: cGFzc3cwcmQ=
+        pipelineschematablespace: pin00
+        pipelineindextablespace: pinx00
+    
+    perflib:
+        deployment:
+            imageName: perflib
+            imageTag: 12.0.0.5.0
+            #Set persistPerflibLogs to True if you want to store perflib timing files into the DB
+            persistPerflibLogs: false
+
+    realtimepipe:
+        isEnabled: true
+        deployment:
+            replicaCount: 1
+            imageName: realtimepipe
+            imageTag: 12.0.0.5.0
+
+    dm_ifw_sync:
+      isEnabled: true
+      deployment:
+        imageName: dm_ifw_sync
+        imageTag: 12.0.0.5.0
+        replicaCount: 1
+        perflib_enabled: false
+
+    dm_eai:
+      isEnabled: true
+      deployment:
+        imageName: dm_eai
+        imageTag: 12.0.0.5.0
+        replicaCount: 1
+
+    dm_aq:
+      isEnabled: true
+      deployment:
+        imageName: dm_aq
+        imageTag: 12.0.0.5.0
+        replicaCount: 1
+        perflib_enabled: false
+
+    rel_daemon:
+      isEnabled: true
+      job:
+        isEnabled: false
+      deployment:
+        imageName: rel_daemon
+        imageTag: 12.0.0.5.0
+        replicaCount: 1
+    
+    batchpipe:
+        isEnabled: false
+    
+    config_jobs:
+        deployment:
+            imageName: common/brm/config_jobs
+            imageTag: development
+        # Set run_apps: true for running custom scripts from pv
+        run_apps: false
+        # Set isMultiSchema: true to trigger job for multiSchemas
+        isMultiSchema: false
+        # Increment restart_count to restart cm during helm upgrade
+        restart_count: 0
+        # Custom script name to be executed as part of Job
+        script_name: loadme.sh
+        configmap_path: /oms/load
+    
+    brm_apps:
+        job:
+            isEnabled: false
+            # Set isMultiSchema: true to trigger job for multiSchemas
+            isMultiSchema: false
+            configmap_path: /oms/load
+            script_name: loadme.sh
+        deployment:
+            isEnabled: true
+            imageName: brm_apps
+            imageTag: 12.0.0.5.0
+
+    wsm:
+        deployment:
+            weblogic:
+                isEnabled: true
+                imageName: brm_wsm_wls
+                initImageName: brm_wsm_wl_init
+                imageTag: 12.0.0.5.0
+                username: d2VibG9naWM=
+                password: d2VibG9naWMxMjM=
+                replicaCount: 1
+                adminServerNodePort: 30611
+                log_enabled: false
+                minPoolSize: 1
+                maxPoolSize: 8
+                poolTimeout: 30000
+                serverStartPolicy: IF_NEEDED
+                monitoring:
+                   isEnabled: false
+                   imageRepository: image-registry.openshift-image-registry.svc:5000/asiabilling-testbed/ 
+                   # Name of the weblogic monitoring exporter image
+                   imageName: weblogic-monitoring-exporter
+                   imageTag: :2.0.2
+                   # Image pull policy. One of Always, Never, IfNotPresent
+                   imagePullPolicy: IfNotPresent
+
+efkStack:
+    isEnabled: true
+    namespace: brm-testbed-logging
+    elastic_search:
+        service:
+            name: elasticsearch
+            port: 9200
+    fluentd:
+        daemonset:
+            imageName: image-registry.openshift-image-registry.svc:5000/asiabilling-testbed/fluentd:1.11
+            
+
+ocpdc:
+
+    # volMnt:
+    #     pdcHostPath: /root/brm-testbed-apps/PDC_SHARE
+    #     pdcIEHostPath: /root/brm-testbed-apps/PDC_IE_SHARE
+    #     pdcBrmHostPath: /root/brm-testbed-apps/PDC_BRM_SHARE
+    #     storageSize: 10Gi
+    configEnv:
+        rcuJdbcURL: "10.95.218.23:1539/TBPPIN01" 
+        rcuPrefix: PDC11
+        keyStoreAlias: 
+        keyStoreIdentityFileName:
+        keyStoreTrustFileName: 
+        crossRefDBHostName: 10.95.218.23
+        crossRefDBPort: 1539
+        crossRefDBService: TBPPIN01
+        crossRefSysDBAUserName: sys
+        crossRefSchemaPDCTableSpace: USERS
+        crossRefSchemaTempTableSpace: TEMP
+        crossRefSchemaUserName: pdc_xref_schema        
+        dbHostName: 10.95.218.23
+        dbPort: 1539
+        dbService: TBPPIN01
+        dbSysDBAUser: sys
+        dbSysDBARole: sysdba
+        pdcSchemaPDCTableSpace: USERS
+        pdcSchemaTempTableSpace: TEMP
+        pdcSchemaUserName: pdc_schema
+        pdcAdminUser: pdcuser
+        transformation:
+            # Log Level, values can be SEVERE/WARNING/INFO/CONFIG/FINE/FINER/FINEST
+            # Default is INFO
+            logLevel:
+            # Memory argument, Please double qoute the value.
+            # Default: "-Xms256m -Xmx512m -XX:CompileThreshold=8000"
+            MEM_ARGS:
+            # Set true to enable ECE - Elastic Charging Engine, default is true
+            # Set false to enable RRE/BRE -- Real-time and Batch Rating Engine.
+            supportECE: true
+            # Specifies the persistence of output files generated by transformation engine, default is disabled
+            # enabled - keep the output & payload files in out directory. Not Recommended!
+            # disabled - do not keep the output & payload files
+            persistOutFiles: 
+            # Setting true will clean the BRM Seed data, default is true.
+            # Setting to false, will not clean the BRM Seed data.
+            # On successful PDC deployment please set the value to false and do helm upgrade so that
+            # during PDC POD restart/redeployment user created data in BRM using PDC will not be lost.
+            isClearBRMSeedData:
+        seedData:
+            # Load Sample Balance Element after successful PDC deployment, default is false.
+            # Note Balance Element will not be overwritten if already exists.
+            BE: 
+            # Load Sample RUM after successful PDC deployment, default is false.
+            # Note RUM will not be overwritten if already exists.
+            RUM: 
+        # PDC Import-Export JOB keys
+        importExport:
+            # ImportExport operation, values can be: export/import/publish/keep/deleteprofile(or dp)/type(or t). please dont prefix with -
+            IE_Operation: publish
+            # ImportExport Component/Object,values can be:config/pricing/metadata/profile/customfields/brmobject/all.
+            # Please do not prefix with -
+            IE_Component: pricing
+            # ImportExport filename (In-case of Import/DeleteProfile(or dp) XML file should be
+            # placed in corresponding NFS mount path, please do not prefix with -
+            IE_FileName:  
+            # Extra CMD Line Arguments for ImportExport Operation apart from Operation/Component/FileName, Please double quote the values
+            #extraCmdLineArgs: "-ignoreID -ow"
+            extraCmdLineArgs: "-target ece"
+            # Schedule Rule to deploy Import-Export POD on particular node by using nodeSelector or affinity
+            nodeSelector: {}
+            affinity: {}
+        monitoring:
+            # setting true will deploy the wls-exporter.war for monitoring and collecting weblogic metrics.
+            isEnabled: false
+            prometheus:
+                operator:
+                    # This flag can be set to true if the Prometheus is of Operator type
+                    # This approach uses a ServiceMonitor to scrape metrics                    
+                    isEnabled: false
+                    #Namespace where Prometheus Operator is deployed
+                    namespace: monitoring
+
+
+    secretValue:
+        name: "pdc-secret-env"
+        adminPassword: UGFzc3cwcmQxMjM0Iw==
+        # rcuSysDBAPassword: T3JhUGFzc3dkMQ==
+        rcuSchemaPassword: cGFzc3cwcmQ=
+        keyStoreIdentityKeyPass: 
+        keyStoreIdentityStorePass: 
+        keyStoreTrustStorePass: 
+        dbPassword: T3JhUGFzc3dkMQ==
+        # crossRefSysDBAPassword: T3JhUGFzc3dkMQ==
+        crossRefSchemaPassword: cGFzc3cwcmQ=
+        # pdcSysDBAPassword: T3JhUGFzc3dkMQ==
+        pdcSchemaPassword: cGFzc3cwcmQ=
+        walletPassword: UGFzc3cwcmQq
+        pdcAdminUserPassword: UGFzc3cwcmQxMjM0Iw==
+
+ocboc:
+    boc:
+        isEnabled: true
+        deployment:
+            imageName: boc
+            imageTag: :12.0.0.5.0
+        configEnv:
+            isOPSS: false
+            ldapSkip: true
+        monitoring:
+            isEnabled: false
+            imageRepository: image-registry.openshift-image-registry.svc:5000/brm-testbed/
+            # Name of the weblogic monitoring exporter image
+            imageName: weblogic-monitoring-exporter
+            imageTag: :2.0.2
+            operator:
+                # The flag to be set to true if prometheus operator is used for monitoring for boc
+                isEnabled: false           
+
+
+ocbc:
+    appLogLevel: INFO
+    bc:
+        isEnabled: true
+        deployment:
+            # Name of the billingcare image
+            imageName: billingcare
+            # Tag associated with image, generally, patch-set number
+            # For non-empty tag, ":" MUST be prepended
+            imageTag: :12.0.0.5.0
+        configEnv:
+            isOPSS: false
+            ldapSkip: true
+        monitoring:
+            isEnabled: false
+            imageRepository: image-registry.openshift-image-registry.svc:5000/brm-testbed/
+            # Name of the weblogic monitoring exporter image
+            imageName: weblogic-monitoring-exporter
+            imageTag: :2.0.2
+            operator:
+                # The flag to be set to true if prometheus operator is used for monitoring for boc
+                isEnabled: false
+    bcws:
+        isEnabled: true
+        deployment:
+            # Name of the billingcare image
+            imageName: common/billingcare_sdk
+            # Tag associated with image, generally, patch-set number
+            # For non-empty tag, ":" MUST be prepended
+            imageTag: :development
+            imagePullPolicy: IfNotPresent
+        configEnv:
+            isOPSS: true 
+            ldapSkip: true
+ocpcc:
+    pcc:
+        isEnabled: true
+        deployment:
+            imageName: pcc
+            imageTag: :12.0.0.5.0
+        configEnv:
+            name: pcc-configmap-env
+            isSSLEnabled: false
+            keyStoreAlias: alias
+            keyStoreIdentityFileName: identity.jks
+            keyStoreTrustFileName: trust.jks
+            rcuJdbcURL: "10.95.218.23:1539/TBPPIN01" 
+            rcuPrefix: PCCJRF12
+        secretVal:
+            name: pcc-secret-vol
+            adminPassword: UGFzc3cwcmQxMjM0Iw==
+            walletPassword: UGFzc3cwcmQq
+            rcuSysDBAPassword: T3JhUGFzc3dkMQ==
+            rcuSchemaPassword: cGFzc3cwcmQ=
+            keyStoreIdentityKeyPass: cGFzc3cwcmQ=
+            keyStoreIdentityStorePass: cGFzc3cwcmQ=
+            keyStoreTrustStorePass: cGFzc3cwcmQ=
+            pccUserPassword: UGFzc3cwcmQxMjM0Iw==
+        monitoring: 
+            prometheus: 
+                  # This flag can be set to true if the Prometheus is of Operator type
+                  # This approach uses a ServiceMonitor to scrape metrics                   
+                  isEnabled: false
+                  # Namespace where Prometheus Operator is deployed
+                  namespace: monitoring
+        
+
+ocrsm:
+    rsm:
+        isEnabled: false 
+
+

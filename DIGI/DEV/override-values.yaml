@@ -1,0 +1,1702 @@
+# Copyright (c) 2022 Oracle and/or its affiliates. 
+
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# For non-empty repository, "/" MUST be appended
+imageRepository: "tabxcnoper01.snlhrprshared1.gbucdsint02lhr.oraclevcn.com/patchset5/"
+imagePullSecrets: "brmregsecret"
+uniPass: ""
+TZ: Asia/Kuala_Lumpur
+
+db:
+    # Shared Database Connection details
+    # Specifies if DB is SSL enabled. Supported values are NO , ONE_WAY
+    #sslMode: "ONE_WAY"
+    sslMode: "NO"
+    # Host name or IP Address of Database Server
+    host: lhr-147.snlhrprshared1.gbucdsint02lhr.oraclevcn.com
+    # Port number of Database Server
+    port: 1521
+    # Name of the DB system administrator
+    user: sys
+    # Password of the DB system administrator
+    password: T3JhUGFzc3dkMQ==
+    # Service Name which identifies DB
+    serviceName: pinpdb
+    # Role assigned to this DBA user
+    role: sysdba
+    # Password of the DB SSL wallet. Required if sslMode is ONE_WAY 
+    walletPassword:
+    walletType: sso
+
+security:
+      java:
+        #Set this flag to override default Java security property
+        overrideSecurityProperties: true
+   
+monitoring:
+      prometheus:
+        jmx_exporter:
+          enable: false 
+        operator:
+          enable: false 
+          #Namespace where Prometheus Operator is deployed
+          namespace: prometheus 
+          #Helm release name given while deploying Prometheus Operator
+          release: prometheus
+
+ocbrm:
+    imagePullPolicy: IfNotPresent
+    # Set isAmt: true , if AMT is going to be used
+    isAmt: true
+    # Set isIPV6Enabled: true if the IPV6 is enabled in the Kubernetes environment
+    isIPV6Enabled: false
+    # Set ece_deployed: false , if ECE is not going to be deployed
+    ece_deployed: true
+    # Set use_oracle_brm_images: false , if custom docker images are built
+    use_oracle_brm_images: true
+    # Set existing_rootkey_wallet: true , if existing database is used (non init-db ) or if exisiting root-key wallet is used.
+    existing_rootkey_wallet: false
+    # Set is_upgrade flag to true for DB upgrade from PS3 to PS4, else set to false for fresh db initialization.
+    is_upgrade: true
+    #TZ: UTC
+    TZ: Asia/Kuala_Lumpur
+    LOG_LEVEL: 3
+    # SSL is enabled when set to true and disabled when set to false
+    isSSLEnabled: true
+    # Disables SSL from CM to DM/EM. When set to true set isSSLEnabled = true
+    cmSSLTermination: false
+    # Set customSSLWallet to true, when using custom TLS certificate for CM. Set cmSSLTermination to true as well.
+    # The wallet containing the custom TLS certificate needs to placed at top level of the helm chart
+    customSSLWallet: false
+    # To enable autoscaling set isHPAEnabled to true.
+    isHPAEnabled: false
+    # To enable limts on CPU and Memory set isResourceLimitEnabled to true.
+    isResourceLimitEnabled: false
+    # To refresh the PCM context to accept request on new CM
+    refreshInterval: 
+    # Time elapsed before the pod is terminated, increase it for long running transaction
+    terminationGracePeriodSeconds: 
+    # Time spent waiting for socket re-connection
+    pcpReconnectDelayOnSocketError:
+    # Time for retrying the connect , when pcp_connect fails
+    pcpConnectRetryDelayOnError:
+    # To enable Security Context in the cluster set EnableSecurityContext to true.
+    EnableSecurityContext: false
+    # Set root_key_rotate: true to rotate BRM Root Key
+    root_key_rotate: false
+    brm_root_pass: UGFzc3cwcmQxMjM0Iw==
+    # Set rotate_password: true to change BRM Root Password
+    rotate_password: false 
+    new_brm_root_password: "" 
+    wallet:
+        client: UGFzc3cwcmQq
+        server: UGFzc3cwcmQq
+        root: UGFzc3cwcmQq
+
+    cm:
+        isEnabled: true
+        deployment:
+            replicaCount: 1
+            imageName: cm
+            imageTag: common-it12-test2
+            #Set enable_publish to 1 to enables publishing of business events through  EAI Framework
+            enable_publish: 0
+            # Enable enrichment in published message with notification preference.
+            enable_prefs_enrichment: false
+            # List of publishers with enrichment enabled.
+            prefs_enabled_publisher_list: 0.0.9.6
+            # Location of where to get the phone number for subscribers.
+            prefs_phone_no_location: 0
+            #Set provisioning_enabled to true to enable provisioning
+            provisioning_enabled: false
+            #Set simulate_agent to 0 to publish service orders
+            simulate_agent: 1
+            perflib_enabled: false
+        service:
+            type: ClusterIP
+            #Below entry is used to specify CM's TLS certificate Subject Alternative Name
+            #Example dnsName: dns:node1.brm.com,dns:node2.brm.com,ip:127.0.0.1
+            dnsName: ocbrm.example.com
+        custom_files:
+            enable: false
+        resourceLimits:
+            limitsCpu: 2.2
+            requestCpu: 2
+            limitsMemory: 2048Mi
+            requestMemory: 1536Mi
+        hpaValues:
+            minReplica: 2
+            maxReplica: 4
+            targetCpu: 80
+            targetMemory: 80
+
+    eai_js:
+        deployment:
+            imageName: eai_js
+            imageTag: 12.0.0.7.0
+            eaiConfigFile: payloadconfig_ifw_sync.xml
+        resourceLimits:
+            limitsCpu: 0.7
+            requestCpu: 0.5
+            limitsMemory: 768Mi
+            requestMemory: 256Mi
+    
+    dm_oracle:
+        isEnabled: true
+        deployment:
+            replicaCount: 1
+            imageName: dm_oracle
+            imageTag: 12.0.0.7.0
+            dm_debug: "0x0001"
+            dm_debug2: "0x001"
+            dm_debug3: "0x001"
+            perflib_enabled: false
+        resourceLimits:
+            limitsCpu: 4
+            requestCpu: 3.5
+            limitsMemory: 4096Mi
+            requestMemory: 3072Mi
+        hpaValues:
+            minReplica: 2
+            maxReplica: 4
+            targetCpu: 80
+            targetMemory: 80
+
+    dm_kafka:
+        isEnabled: true
+        deployment:
+            imageName: dm_kafka
+            imageTag: 12.0.0.7.0
+            replicaCount: 1
+            kafka_bootstrap_server_list: ece-kafka:9093
+            poolSize: 64
+            topicName: BRMTopic
+            topicFormat: XML
+            topicStyle: CamelCase
+            isSecurityEnabled: false
+            trustStorePassword:
+            keyStorePassword:
+            keyPassword:
+            password:
+        resourceLimits:
+            limitsCpu: 2.5
+            requestCpu: 0.1
+            limitsMemory: 1024Mi
+            requestMemory: 128Mi
+        hpaValues:
+            minReplica: 2
+            maxReplica: 4
+            targetCpu: 80
+            targetMemory: 80
+
+    dm_email:
+        isEnabled: false
+        deployment:
+            replicaCount: 1
+            imageName: dm_email
+            imageTag: 12.0.0.7.0
+            smtpServer: example.us.oracle.com
+
+    dm_invoice:
+        isEnabled: false
+        deployment:
+            replicaCount: 1
+            imageName: dm_invoice
+            imageTag: 12.0.0.7.0
+
+    dm_ldap:
+        isEnabled: false
+        deployment:
+            replicaCount: 1
+            imageName: dm_ldap
+            imageTag: 12.0.0.7.0
+            dirserverpassword:
+
+    dm_prov_telco:
+        isEnabled: false
+        deployment:
+            replicaCount: 1
+            imageName: dm_prov_telco
+            imageTag: 12.0.0.7.0
+        service_order:
+            storage: 50Mi
+
+    # Update the provisioner name
+    dynamic_provisioner:
+        provisioner: example.com/nfs
+
+    storage_class:
+        create: false
+        name: nfs
+        parameters: {}
+
+    virtual_time:
+        enabled: false
+        sync_pvt_time: 60
+        storage: 50Mi
+
+    db:
+        deployment:
+            imageName: init_db
+            imageTag: 12.0.0.7.0
+        host: lhr-147.snlhrprshared1.gbucdsint02lhr.oraclevcn.com
+        port: 1521
+        service: pinpdb
+        # Specifies if DB is SSL enabled. Supported values are NO , ONE_WAY
+        sslMode:
+        # Password of the DB SSL wallet. Required if sslMode is set to "ONE_WAY"
+        walletPassword:
+        # Specify the DB SSL wallet type: pkcs12 or sso
+        walletType: sso
+        # Set enable_partition: No , if partitioning is disabled at database level or want to skip partitioning
+        enable_partition: 'Yes'
+        schemauser: pin
+        schemapass: cGFzc3cwcmQ=
+        schematablespace: pin00
+        indextablespace: pinx00
+        nls_lang: AMERICAN_AMERICA.AL32UTF8
+        pipelineschemauser: pin
+        pipelineschemapass: cGFzc3cwcmQ=
+        pipelineschematablespace: pin00
+        pipelineindextablespace: pinx00
+        # uncomment the below for multi-schema setup and add new block 'secondaryN' for more than 1 secondary schema
+        multiSchemas:
+            secondary1:
+               deploy: true
+               host: lhr-147.snlhrprshared1.gbucdsint02lhr.oraclevcn.com
+               port: 1521
+               service: pinpdb
+               schemauser: pin02
+               schemapass: cGFzc3cwcmQ=
+               schematablespace: pin02
+               indextablespace: pinx02
+
+    upgrade:
+        deployment:
+            imageName: upgrade
+            imageTag: 12.0.0.7.0
+
+    perflib:
+        deployment:
+            imageName: perflib
+            imageTag: 12.0.0.7.0
+            #Set persistPerflibLogs to True if you want to store perflib timing files into the DB
+            persistPerflibLogs: false
+        resourceLimits:
+            limitsCpu: 0.7
+            requestCpu: 0.5
+            limitsMemory: 768Mi
+            requestMemory: 256Mi
+            
+    dm_fusa:
+        isEnabled: false
+        deployment:
+            imageName: dm_fusa
+            imageTag: 12.0.0.7.0
+            simulatorTag: 12.0.0.7.0
+            dmf_sid_pwd: ""
+            dmf_pid_pwd: "" 
+        tempdir:
+            storage: 50Mi
+
+    dm_vertex:
+        isEnabled: false
+        deployment:
+            replicaCount: 1
+            imageName: dm_vertex
+            imageTag: 12.0.0.7.0
+            quantum_db_password:
+            ctqCfg: /oms/vertex/64bit/cfg
+            ctqCfgName: CTQ Test
+            ctqSmObj: ./dm_vertex_ctq3010564.so
+
+    realtimepipe:
+        isEnabled: true
+        deployment:
+            replicaCount: 1
+            imageName: realtimepipe
+            imageTag: 12.0.0.7.0
+            rtp_num_thread: 8
+            rtp_num_pipe: 2
+            discount_trace: True
+            console_discount_trace: True
+            loglevel: major
+            SemaphoreEnable: True
+        pvc:
+            storage: 50Mi
+        resourceLimits:
+            limitsCpu: 1.2
+            requestCpu: 1
+            limitsMemory: 3072Mi
+            requestMemory: 2560Mi
+        hpaValues:
+            minReplica: 2
+            maxReplica: 4
+            targetCpu: 80
+            targetMemory: 80
+
+
+    batch_controller:
+        isEnabled: false
+        deployment:
+            replicaCount: 1
+            image: batch_controller
+            imageTag: 12.0.0.7.0
+        pvc:
+            storage: 50Mi
+        resourceLimits:
+            limitsCpu: 1.2
+            requestCpu: 1
+            limitsMemory: 512Mi
+            requestMemory: 409Mi
+        hpaValues:
+            minReplica: 2
+            maxReplica: 4
+            targetCpu: 80
+            targetMemory: 80
+
+    dm_ifw_sync:
+      isEnabled: false
+      deployment:
+        imageName: dm_ifw_sync
+        imageTag: 12.0.0.7.0
+        replicaCount: 1
+        perflib_enabled: false
+      resourceLimits:
+        limitsCpu: 1.2
+        requestCpu: 1
+        limitsMemory: 512Mi
+        requestMemory: 409Mi
+      hpaValues:
+        minReplica: 2
+        maxReplica: 4
+        targetCpu: 80
+        targetMemory: 80
+
+
+    dm_eai:
+      isEnabled: false
+      deployment:
+        imageName: dm_eai
+        imageTag: 12.0.0.7.0
+        replicaCount: 1
+      resourceLimits:
+        limitsCpu: 1.2
+        requestCpu: 1
+        limitsMemory: 512Mi
+        requestMemory: 409Mi
+      hpaValues:
+        minReplica: 2
+        maxReplica: 4
+        targetCpu: 80
+        targetMemory: 80
+        
+
+    dm_aq:
+      isEnabled: false
+      deployment:
+        imageName: dm_aq
+        imageTag: 12.0.0.7.0
+        replicaCount: 1
+        perflib_enabled: false
+      resourceLimits:
+        limitsCpu: 1.2
+        requestCpu: 1
+        limitsMemory: 512Mi
+        requestMemory: 409Mi
+      hpaValues:
+        minReplica: 2
+        maxReplica: 4
+        targetCpu: 80
+        targetMemory: 80
+
+    rel_daemon:
+      isEnabled: true
+      job:
+        isEnabled: false
+        dbNumber: 0.0.0.1
+      deployment:
+        imageName: rel_daemon
+        imageTag: 12.0.0.7.0
+        replicaCount: 1
+      resourceLimits:
+        limitsCpu: 2.2
+        requestCpu: 2
+        limitsMemory: 1228Mi
+        requestMemory: 1024Mi
+      hpaValues:
+        minReplica: 2
+        maxReplica: 4
+        targetCpu: 80
+        targetMemory: 80
+
+    rem:
+      logging:
+        logToFile: false
+        log4j2:
+          logger:
+            brmRatedeventmanager: INFO
+            brmRatedeventmanagerDiagnostic: INFO
+            root: INFO
+      isEnabled: false
+      deployment:
+        imageName: rem
+        imageTag: 12.0.0.7.0
+      resourceLimits:
+        limitsCpu: 2.0
+        requestCpu: 0.5
+        limitsMemory: 1228Mi
+        requestMemory: 512Mi
+      hpaValues:
+        minReplica: 2
+        maxReplica: 4
+        targetCpu: 80
+        targetMemory: 80
+
+    batchpipe:
+        isEnabled: false
+        deployment:
+            imageName: batch_pipeline
+            imageTag: 12.0.0.7.0
+            discount_trace: True
+            console_discount_trace: True
+            loglevel: major
+
+    roampipe:
+        isEnabled: false
+        deployment:
+            imageName: roam_pipeline
+            imageTag: 12.0.0.7.0
+            discount_trace: True
+            console_discount_trace: True
+            loglevel: major
+        pvc:
+            storage: 100Mi
+
+    formatter:
+      isEnabled: false
+      deployment:
+        imageName: formatter
+        imageTag: 12.0.0.7.0
+        replicaCount: 1
+        logLevel: 1
+        jsLogLevel: 1
+        pxsltLogLevel: 1
+
+    config_jobs:
+        deployment:
+            imageName: config_jobs
+            imageTag: common-it12-test2
+        # Set run_apps: true for running custom scripts
+        run_apps: false
+        # Set isMultiSchema: true to trigger job for multiSchemas
+        isMultiSchema: false
+        # Increment restart_count to restart cm during helm upgrade
+        restart_count: 0
+        # Custom script name to be executed as part of Job
+        script_name: loadme.sh
+        configmap_path: /oms/load
+
+    brm_apps:
+        job:
+            isEnabled: false
+            # Set isMultiSchema: true to trigger job for multiSchemas
+            isMultiSchema: false
+            configmap_path: /oms/load
+            script_name: loadme.sh
+        deployment:
+            isEnabled: true
+            imageName: brm_apps
+            imageTag: 12.0.0.7.0
+            replicaCount: 1
+            enable_system_ara: 1
+            pin_billd:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_export_price:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_inv:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_trial_bill:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_generate_analytics:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_gen_notifications:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_subscription:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_rerate:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_installments:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_deposits:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_crypt:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_balance_transfer:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_collections:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            exportapps:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_state_change:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_bulk_adjust:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_bill_handler:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_monitor:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_ood_handler_process:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_ood_handler:
+                mtaChildren: 5
+                mtaPerBatch: 500
+                mtaPerStep: 1000
+                mtaFetchSize: 5000
+            pin_inv_doc_gen:
+                bipServer: bipserver
+                bipPort: 9502
+                bipUsername: bipusername
+                bipPassword: "" 
+                schedulerDBServer: dbhostname
+                schedulerDBPort: 1521
+                schedulerDBService: schedulerdbservice
+                schedulerDBUsername: dbuser
+                schedulerDBServiceCredentials: ""
+                jdbcPoolSize: 5
+                jdbcPoolMaxSize: 10
+                securityCredentials: ""
+            pin_job_executor:
+                rendering: false
+
+        resourceLimits:
+                limitsCpu: 2.2
+                requestCpu: 2
+                limitsMemory: 1228Mi
+                requestMemory: 1024Mi
+
+        hpaValues:
+            minReplica: 2
+            maxReplica: 4
+            targetCpu: 80
+            targetMemory: 80
+
+    wsm:
+        deployment:
+            weblogic:
+                isEnabled: false
+                imageName: brm_wsm_wls
+                initImageName: brm_wsm_wl_init
+                imageTag: 12.0.0.7.0
+                username: d2VibG9naWM=
+                password: d2VibG9naWMxMjM=
+                replicaCount: 1
+                adminServerNodePort: 30611
+                log_enabled: false
+                minPoolSize: 1
+                maxPoolSize: 8
+                poolTimeout: 30000
+                serverStartPolicy: IF_NEEDED
+                monitoring:
+                   isEnabled: false
+                   imageRepository: ghcr.io/
+                   # Name of the weblogic monitoring exporter image
+                   imageName: oracle/weblogic-monitoring-exporter
+                   imageTag: :2.0.5
+                   # Image pull policy. One of Always, Never, IfNotPresent
+                   imagePullPolicy: IfNotPresent
+                   queries: []
+
+            tomcat:
+                isEnabled: false
+                replicaCount: 1
+                imageName: brm_wsm
+                imageTag: 12.0.0.7.0
+                port: 8080
+                nodePort: 30080
+                log_enabled: true
+                minPoolSize: 1
+                maxPoolSize: 8
+                poolTimeout: 30000
+                basicAuth: false
+                walletPassword: QzFnMmIzdTQ=
+
+# This section is for forwarding the logs to a log management system
+# Applicable only for services running forwarder app as sidecar
+logging:
+    isEnabled: false
+    fluentd:
+        imageName:
+        resources:
+            limits:
+                memory: 200Mi
+            requests:
+                cpu: 100m
+                memory: 200Mi
+        conf:
+            ocbrm:
+                wsm:
+            ocbc:
+            ocboc:
+            ocpdc:
+            webhook:
+
+webhook:
+    # flag to enable webhook
+    isEnabled: false
+    # log directory for webhook application
+    logPath:
+    # log level, Available options are CRITICAL, ERROR, INFO, DEBUG, WARNING and NOTSET
+    logLevel: INFO
+    deployment:
+        # webhook application image name
+        imageName: webhook
+        # webhook application image tag
+        imageTag: 12.0.0.7.0
+        # image pull policy
+        imagePullPolicy: IfNotPresent
+        # resouce configuration for webhook application container
+        resources:
+            limits:
+                cpu: 500m
+                memory: 2500Mi
+            requests:
+                cpu: 100m
+                memory: 100Mi
+    scripts:
+        # scripts mount path
+        mountPath: /u01/script
+    # weblogic operator details
+    wop:
+        # namespace of weblogic operator
+        namespace:
+        # service account of weblogic operator
+        sa: default
+        # internal operator certficate present in operator configmap
+        internalOperatorCert:
+    # extra alert details in json format
+    jsonConfig:
+
+ocpdc:
+
+     # Setting true to will deploy PDC, setting false will undeploy/do not deploy PDC
+     isEnabled: true
+     # Setting true will clean OLD Logs and OLD Out files
+     isCleanLogs: true
+     # Linux Language, default is en_US.UTF-8
+     lang:   
+     # Linux Time-Zone, default is UTC
+     tz: Asia/Kuala_Lumpur
+     # Please provide the storage size, applicable to all PDC PODs, default is 10Gi
+     storageSize:
+     # Deployment keys   
+     deployment:
+        imageName:
+          pdcapp: "oracle/pdcapp"
+          pdcie: "oracle/pdcie"
+          pdcbrm: "oracle/pdcbrminteg"
+       # For non-empty tag, ":" MUST be perpended
+        imageTag: ":12.0.0.7.0"
+        imagePullPolicy: IfNotPresent
+     # Define rules to schedule PDC PODs on particular node by using nodeSelector or affinity.
+     # Applicable for PDC-App/RRE/BRE/SyncPDC/Import-Export PODS.
+     # To provide different scheduling rules for RRE/BRE/SyncPDC/Import-Export PODs,
+     # Please use nodeSelector or affinity key in Values.ocpdc.configEnv.transformation/
+     # Values.ocpdc.configEnv.syncPDC/Values.ocpdc.configEnv.importExport, as these 
+     # keys will take precedence than Values.ocpdc.nodeSelector or Values.ocpdc.affinity.
+     nodeSelector: {}
+     affinity: {}
+     # Weblogic Operator 
+     wop:
+        #The name of this WebLogic Server domain.
+        domainUID: 
+        # Whether to include the server out file into the pod's stdout, default is true
+        includeServerOutInPodLog: 
+        #The strategy for deciding whether to start a WebLogic Server instance.Legal values are ADMIN_ONLY, NEVER, or IF_NEEDED. Defaults to IF_NEEDED.
+        serverStartPolicy: IF_NEEDED
+        # Below WebLogic tuning parameter are defaulted as recommended in Doc ID 1953515.1
+        # During Import/Export based on volume of data USER_MEM_ARGS should be increased accordingly 
+        # Default value is 10000
+        jtaTimeoutSeconds: 10000 
+        # Default value is 10000
+        jtaAbandonTimeoutSeconds: 10000
+        # Default value is 20000
+        stuckThreadMaxTime: 20000
+        # Default value is 40
+        idlePeriodsUntilTimeout: 40
+        # Default value is true
+        setDataSourceXaTxnTimeout: 
+        # Default value is 0
+        dataSourceXaTxnTimeout: 0
+        # Default value is 36000
+        pdcAppSesTimeOut: 36000
+        # Default value is 3000
+        pdcAppSesInvInterTimeOut: 3000 
+       # For custom domain configuration set to true, place WDT yaml files on pdc/custom_wdt_yamls/configurations. 
+       # configmap is genearated by name "pdc-domain-custom-configmap", default is false
+        isCustomWDTYamlConfigMap: 
+       # For custom domain configuration if needs secrets, set to true, place secret yaml file with key,value pair format on pdc/custom_wdt_yamls/secrets.
+       # secret is generated by name "pdc-domain-custom-secret", default is false
+        isCustomWDTYamlSecret: 
+       #Add OPSS Secretewallet to re-use existing RCU, default false
+        addOpssSecret: false
+       #Secret with ewallet deployed on the same namespace
+        opssWalletSecretName: 
+     # Environment/Configuration keys    
+     configEnv:
+        name: "pdc-configmap-env"
+        # Domain adminUser is "weblogic" and start mode is "prod"
+        exposePorts: 
+        # PDC t3ChannelPort is mandatory for ECE enabled system, in-case ECE deployed with different namespace. 
+        # Provide any available K8S port, node port range for Kubernetes is 30000 - 32767
+        t3ChannelPort: 
+        # PDC t3AddressAddress is optional, else provide master node IP or Load balancer IP.
+        t3ChannelAddress:
+        # PDC t3sChannelPort (T3 Channel through SSL) is mandatory for ECE enabled system, in-case ECE deployed with different namespace.. 
+        # Provide any available K8S port, node port range for Kubernetes is 30000 - 32767
+        t3sChannelPort: 
+        # PDC t3sAddressAddress is optional,else provide master node IP or Load balancer IP.
+        t3sChannelAddress:
+        # Custom memory arguments for WebLogic AdminServer
+        # During Import/Export increase the memory based on volume of data
+        USER_MEM_ARGS:
+        # Custom java options for WebLogic AdminServer
+        USER_JAVA_OPTIONS:
+        #Create file java.security in pdc/java_security with ciphers needs to be disabled and provide file name, default empty 
+        javaSecurityFileName:
+        # Mandatory -RCU Connection String, Format: DBHostName:DBPort/DBService
+        rcuJdbcURL: "lhr-147.snlhrprshared1.gbucdsint02lhr.oraclevcn.com:1521/pinpdb"
+       # PDC Domain RCU Schema prefix, If prefix is XYZ then XYZ_STB will be created.
+        rcuPrefix: PDC06
+        # PDC Domain SSL Key Store type, default is JKS.
+        keyStoreType: 
+        # PDC Domain SSL Key Store Alias name, default is WeblogicPDCTestAlias
+        keyStoreAlias: 
+        # PDC Domain SSL Key Store Identity Filename
+        # Refer: https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html
+        # Please place the certificate file in pdc/pdc_keystore 
+        keyStoreIdentityFileName: 
+        # PDC Domain SSL  Key Trust Store Trust Filename
+        keyStoreTrustFileName: 
+        # PDC and Cross Reference DB Host-name.
+        dbHostName: lhr-147.snlhrprshared1.gbucdsint02lhr.oraclevcn.com
+        # PDC and Cross Reference DB Port, default is 1521.
+        dbPort: 1521
+        # PDC and Cross Reference DB Service.
+        dbService: pinpdb
+        # PDC and Cross Reference DB SYS/System/Sys DBA User.
+        dbSysDBAUser: sys
+        # PDC and Cross Reference DB SYS/System/Sys DBA User Role
+        dbSysDBARole: sysdba
+        # Specifies if DB is SSL enabled. Supported values are NO , ONE_WAY
+        sslMode:
+        # Specify the DB SSL wallet type for PDC/Cross Reference: pkcs12 or sso, default sso
+        dbWalletType:
+        # Cross Reference DB Schema PDC Table Space, default is USERS.
+        crossRefSchemaPDCTableSpace: USERS
+        # Cross Reference DB Schema PDC TEMP Table Space, default is TEMP.
+        crossRefSchemaTempTableSpace: TEMP
+        # Cross Reference DB Schema User-name.
+        crossRefSchemaUserName: pdc_xref_schema
+       # PDC Application Schema PDC Table Space, default is USERS.
+        pdcSchemaPDCTableSpace: USERS
+        # PDC Application Schema TEMP Table , default is TEMP.
+        pdcSchemaTempTableSpace: TEMP
+        # PDC Application Schema User-name.
+        pdcSchemaUserName: pdc_schema
+        # PDC Application Admin User-name, default is cnepdcadminuser, it is not recommended to use weblogic.
+        pdcAdminUser: pdcuser
+        # Transformation keys
+        transformation:
+            # Log Level, values can be SEVERE/WARNING/INFO/CONFIG/FINE/FINER/FINEST
+            # Default is INFO
+            logLevel: 
+            # Memory argument, Please double qoute the value.
+            # Default: "-Xms256m -Xmx512m -XX:CompileThreshold=8000"
+            MEM_ARGS:
+            # Set true to enable ECE - Elastic Charging Engine, default is true
+            # Set false to enable RRE/BRE -- Real-time and Batch Rating Engine.
+            supportECE: true
+            # Specifies the persistence of output files generated by transformation engine, default is disabled
+            # enabled - keep the output & payload files in out directory. Not Recommended!
+            # disabled - do not keep the output & payload files
+            persistOutFiles: 
+            # Setting true will clean the BRM Seed data, default is true.
+            # Setting to false, will not clean the BRM Seed data.
+            # On successful PDC deployment please set the value to false and do helm upgrade so that
+            # during PDC POD restart/redeployment user created data in BRM using PDC will not be lost.
+            isClearBRMSeedData: false
+            # Set true to upgrade from previous version to 12PS version or while deploying 12PS IP, default is false.
+            upgrade: true
+            # Schedule Rule to deploy RRE and BRE PODs on particular node by using nodeSelector or affinity
+            nodeSelector: {}
+            affinity: {}
+        # Seed Data keys
+        seedData:
+            # Load Sample Balance Element after successful PDC deployment, default is false.
+            # Note Balance Element will not be overwritten if already exists.
+            BE: 
+            # Load Sample RUM after successful PDC deployment, default is false.
+            # Note RUM will not be overwritten if already exists.
+            RUM: 
+        # PDC Import-Export JOB keys 
+        importExport:
+            # ImportExport operation, values can be: export/import/publish/keep/deleteprofile(or dp)/type(or t). please dont prefix with -
+            IE_Operation: publish 
+            # ImportExport Component/Object,values can be:config/pricing/metadata/profile/customfields/brmobject/all.
+            # Please do not prefix with -
+            IE_Component: pricing
+            # ImportExport filename (In-case of Import/DeleteProfile(or dp) XML file should be
+            # placed in corresponding mount path (PVC Name: "pdc-brm-pvc"), please do not prefix with -
+            IE_FileName: pricing/B-DIGI-PRE-RM3_for_3GB_1Day_pricing.xml
+            # Extra CMD Line Arguments for ImportExport Operation apart from Operation/Component/FileName, Please double quote the values
+            #extraCmdLineArgs: 
+            #extraCmdLineArgs: " -ignoreID -ow"
+            #extraCmdLineArgs: " -ow" #during pring load this should uncomment
+            #extraCmdLineArgs: "-target rre"
+            extraCmdLineArgs: "-target all"
+            #extraCmdLineArgs: " -v -target all"
+            # Schedule Rule to deploy Import-Export POD on particular node by using nodeSelector or affinity
+            nodeSelector: {}
+            affinity: {}
+        # SyncPDC keys
+        syncPDC:
+            # Set true to upgradeFromPS2 from PS2 to PS4 or higher, default is false.
+            # To support 5G
+            upgradeFromPS2:
+            # Log Level, values can be SEVERE/WARNING/INFO/CONFIG/FINE/FINER/FINEST
+            # Default is FINEST
+            logLevel: 
+            # Specifies whether to skip synchronization of pipeline configuration data during SyncPDC, 
+            # where SkipOption is either true or false
+            # This skipBREMigration is ignored when ECE is enabled in PDC system",  default is false
+            skipBREMigration: 
+            # SyncPDC processing recurring scheduling. Please double quotes the value.
+            # startAt:  SyncPDC to be started at the time on the day job is submitted.
+            # Entry is in HH:MM format, where HH is the hours between 0-23, and MM minutes between 00-59. -->
+            # Default is "23:59", Please doubt quote the value.
+            syncPDCStartAt: 
+            # Interval: the frequency for syncPDC to be run. Please double quotes the value.
+            # Entry is in N:U format where N is a valid number and U is the unit.
+            # Valid units are: D (Daily), H (Hour), M(Minute).
+            # e.g. 2:D means to run every other day. Note: 24:H is not the same as 1:D due to daylight saving time.
+            # Default is "1:D", Please doubt quote the value.
+            syncPDCInterval: 
+            # Please copy the Enrichment file in "syncpdc" folder corresponding mount path (PVC Name: "pdc-brm-pvc").
+            # Just provide the file name here, no need of the path.
+            # Applicable both PDC deployment time as well on-demand syncPdc run time. 
+            enrichmentFileName: 
+            # Setting true will deploy and run SyncPDC as POD once PDC deployed, default is true.
+            # Setting to false, will not deploy SyncPDC as POD.
+            runSyncPDC: 
+            # Schedule Rule to deploy SyncPDC POD on particular node by using nodeSelector or affinity
+            nodeSelector: {}
+            affinity: {}
+        # PDC Monitoring keys
+        monitoring:
+            # setting true will deploy the wls-exporter.war for monitoring and collecting weblogic metrics.
+            isEnabled: false
+            imageRepository: "ghcr.io/"
+            imageName: "oracle/weblogic-monitoring-exporter"
+            imageTag: ":2.0.2"
+            queries: []
+            prometheus:
+                operator:
+                    # This flag can be set to true if the Prometheus is of Operator type
+                    # This approach uses a ServiceMonitor to scrape metrics
+                    isEnabled: false
+                    #Namespace where Prometheus Operator is deployed
+                    namespace: monitoring
+     # PDC Secret Password keys
+     secretValue:
+        name: "pdc-secret-env"
+        # Domain adminUser password
+        adminPassword: UGFzc3cwcmQxMjM0Iw==
+        # PDC Domain RCU Schema Password
+        rcuSchemaPassword: cGFzc3cwcmQ=
+        # PDC Domain SSL Identity Key Password
+        # In-case ocpdc.configEnv.keyStoreIdentityFileName and ocpdc.configEnv.keyStoreTrustFileName left empty, 
+        # then keyStoreIdentityKeyPass value will be set to 'UERDU1NMUGFzczEyMyM=' which is 'PDCSSLPass123#'
+        keyStoreIdentityKeyPass: 
+        # PDC Domain SSL Identity Key Store Password
+        # In-case ocpdc.configEnv.keyStoreIdentityFileName and ocpdc.configEnv.keyStoreTrustFileName left empty, 
+        # then keyStoreIdentityStorePass value will be set to 'UERDU1NMUGFzczEyMyM=' which is 'PDCSSLPass123#'
+        keyStoreIdentityStorePass: 
+        # PDC Domain SSL Custom Trust Store Password
+        # In-case ocpdc.configEnv.keyStoreIdentityFileName and ocpdc.configEnv.keyStoreTrustFileName left empty, 
+        # then keyStoreTrustStorePass value will be set to 'UERDU1NMUGFzczEyMyM=' which is 'PDCSSLPass123#'       
+        keyStoreTrustStorePass: 
+        # PDC and Cross Reference Schema SYS/System User Password
+        dbPassword: T3JhUGFzc3dkMQ==
+        # PDC Application DB Schema Password
+        pdcSchemaPassword: cGFzc3cwcmQ=
+        # PDC Cross Reference Schema Password
+        crossRefSchemaPassword: cGFzc3cwcmQ=
+        # Password of the DB SSL wallet. Required if walletType = pkcs12 
+        dbWalletPassword: 
+        # PDC Application Wallet and PDC BRM Integration Wallet password
+        walletPassword: UGFzc3cwcmQq
+        # PDC Application AdminUser Password
+        pdcAdminUserPassword: UGFzc3cwcmQxMjM0Iw==
+    # PDC Node-Port details
+     service:
+        name: "pdc-service"
+        type: "NodePort"
+
+ocpdcrsm:
+    isEnabled: false
+    labels:
+        name: "pdcrsm"
+    deployment:
+        deadlineSeconds: 60
+        revisionHistLimit: 10
+        imageName:
+            pdcrsm: "oracle/pdcrsm"
+        # For non-empty tag, ":" MUST be prepended
+        imageTag: ":12.0.0.7.0"
+        imagePullPolicy: IfNotPresent
+        rootLogLevel: INFO
+        appLogLevel: INFO
+        JAVA_OPTS: -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+    configEnv:
+        name: "pdcrsm-configmap-env"
+        # PDC REST Services Manager Listener Port, default 8080
+        rsmListenerPort: 8080
+        # Whether or not to use t3s for the connection to PDC, default true
+        useT3s: true
+        # The path to a JKS truststore for use with outbound TLS connections, if required
+        jksTrustStorePath:
+        # Security Enable, default false
+        securityEnabled:
+        #Security type is OAM/IDCS; By default application connects to IDCS for security.
+        securityType:
+        idcs:
+            # PDC REST Services Manager inbound Oauth base URI
+            inboundOauthUri:
+            # PDC REST Services Manager Client ID for inbound Oauth
+            inboundOauthClientId:
+            #  Frontend URI for inbound Oauth
+            inboundOauthFrontendUri:
+            # Primary Audience for inbound Oauth
+            inboundOauthAudience:
+            # Proxy Host for inbound Oauth, if required
+            inboundOauthProxyHost:
+            # Scope required to access the TMF620 Publish Event endpoint for inbound Oauth
+            inboundOauthPubEventScope:
+            # Scope required to access the metrics endpoint for inbound Oauth
+            inboundOauthMetricsScope:
+        oam:
+            # OAM Domain Name
+            domainName:
+            # OAM OAuth Server Name
+            audience:
+            # OAM OAuth Token Endpoint
+            endpointURL:
+            # OAM OAuth Introspect Endpoint
+            introspectendpointuri:
+            # OAM OAuth Scope Audience
+            scopeaudience:
+            # OAM OAuth Authorization Endpoint
+            authorizationendpointuri:
+            # OAM OAuth Proxy Host
+            proxyhost: ""
+            # OAM OAuth Frontend URI
+            frontenduri:
+        # Whether or not to enable tracing, default false
+        isTracingEnabled: false
+        # Whether or not to enable TLS encryption for RSM webservices, default false
+        isTlsEnabled: false
+        # The path to the TLS certificate bundle relative to this helm chart; certificate must be in PKCS12 format
+        tlsCertificatePath:
+        # HTTP client configuration
+        httpClients:
+            # Regular expression used to match outbound hosts to configuration sets
+            - urlRegex: ""
+              security:
+                  oauth2:
+                      tokenEndpoint: ""
+                      clientId: ""
+                      scope: ""
+                      grantType: "client_credentials"
+    secretValue:
+        name: "pdcrsm-secret-env"
+        # PDC REST Services Manager Client Secret for inbound Oauth
+        inboundOauthClientSecret:
+        # Optional base64-encrypted passphrase for the TLS certificate
+        tlsCertificatePassphrase:
+        # HTTP client configuration
+        httpClients:
+            # Regular expression used to match outbound hosts to configuration sets
+            - urlRegex: ""
+              security:
+                  oauth2:
+                      clientSecret: ""
+    service:
+        name: "pdcrsm"
+        type: "NodePort"
+        nodePort: 31000
+                                                    
+
+ocboc:
+
+    # Values used for Business Opearations Center application and its domain
+    boc:
+        # Boolean indicating to deploy, configure and start Business Opearations Center Application 
+        # Application Services
+        # - false: K8S resources meant for Business Opearations Center Application will
+        #          not be created
+        # - true: Creates necessary K8S resources for using Business Opearations Center Application 
+        isEnabled: true
+        deployment:
+            # Name of the Business Opearations Center
+            imageName: oracle/boc
+            # Tag associated with image, generally, patch-set number
+            # For non-empty tag, ":" MUST be prepended
+            imageTag: :12.0.0.7.0
+            # Image pull policy. One of Always, Never, IfNotPresent
+            imagePullPolicy: IfNotPresent
+        configEnv:
+            # Host name or IP Address of Database Server
+            dbHost: lhr-147.snlhrprshared1.gbucdsint02lhr.oraclevcn.com
+            # Port number of Database Server
+            dbPort: 1521
+            # Service Name which identifies DB
+            dbServiceName: pinpdb
+            # Specify the SSLMode : "NO", "ONE_WAY" 
+            dbSSLMode:
+            # Specify the DB SSL wallet type: sso
+            dbWalletType:
+            # Container's port for access to WebLogic Domain over HTTP
+            httpPort: 7011
+            # Create an OPSS or non-OPSS domain. One of true, false
+            # Production setup must use OPSS (true) only
+            isOPSS: false
+            # Skip creation of Authenticator and Asserter. One of true, false
+            ldapSkip: true
+            # Set it to "true" if this service will use SSO and must be configured with SAML 2.0
+            isSSOEnabled: false
+        wop:
+            # Name of the domain
+            # Used as prefix to tag related objects
+            domainUID: boc-domain
+            # Mount path where the create domain scripts are located inside a pod
+            domainScriptDir: /u01/weblogic
+            # Script that the create domain script uses to create a WebLogic domain
+            # and install and configure application
+            domainScript: create-boc-domain-job.sh
+            # Location within container where domain is created
+            domainRootDir: /shared
+            # Total number of managed servers forming the cluster
+            totalManagedServers: 5
+            # Number of managed servers to initially start for the domain
+            initialServerCount: 2
+            # NodePort where admin-server's http service will be accessible
+            adminChannelPort: 30811
+            # Enable T3 Service for admin-server. Default is false
+            exposeT3Channel: false
+            # NodePort where admin-server's T3 service will be accessible
+            t3ChannelPort: 30014
+            # Public address for T3Channel of the NetworkAccessPoint.  This value should be set to the
+            # kubernetes server address, which you can get by running "kubectl cluster-info".  If this
+            # value is not set to that address, WLST will not be able to connect from outside the
+            # kubernetes cluster
+            t3ChannelAddr: ''
+            # serverStartPolicy legal values are "NEVER", "IF_NEEDED", or "ADMIN_ONLY"
+            # This determines which WebLogic Servers the Operator will start up when it discovers this Domain
+            # - "NEVER" will not start any server in the domain
+            # - "ADMIN_ONLY" will start up only the administration server (no managed servers will be started)
+            # - "IF_NEEDED" will start all non-clustered servers, including the administration server and clustered servers up to the replica count
+            serverStartPolicy: 'IF_NEEDED'
+        monitoring:
+            isEnabled: false
+            imageRepository: tabxcnoper01.snlhrprshared1.gbucdsint02lhr.oraclevcn.com/patchset5/
+            # Name of the weblogic monitoring exporter image
+            imageName: oracle/weblogic-monitoring-exporter
+            imageTag: :2.0.2
+            # Image pull policy. One of Always, Never, IfNotPresent
+            imagePullPolicy: IfNotPresent
+            queries: []
+            # scrape interval for service monitor
+            scrapeInterval: 2s
+            # Below parameters are related to prometheus operator
+            operator:
+                # The flag to be set to true if prometheus operator is used for monitoring for boc
+                isEnabled: false
+        # Define rules for scheduling WebLogic Server pods on particular nodes
+        # either by using nodeSelector or affinity
+        nodeSelector: {}
+        affinity: {}
+
+ocbc:
+
+    # Logging level at which application logs must be captured in log files
+    # Changes level only for weblogic server logs
+    # Possible values: SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL
+    appLogLevel: INFO
+    # Values used for Billing Care application and its domain
+    bc:
+        # Boolean indicating to deploy, configure and start Billing Care
+        # Application Services
+        # - false: K8S resources meant for Billing Care Application will
+        #          not be created
+        # - true: Creates necessary K8S resources for using Billing Care
+        isEnabled: true
+        deployment:
+            # Name of the billingcare image
+            imageName: oracle/billingcare
+            # Tag associated with image, generally, patch-set number
+            # For non-empty tag, ":" MUST be prepended
+            imageTag: :12.0.0.7.0
+            # Image pull policy. One of Always, Never, IfNotPresent
+            imagePullPolicy: IfNotPresent
+        configEnv:
+            # Container's port for access to WebLogic Domain over HTTP
+            httpPort: 7011
+            # Create an OPSS or non-OPSS domain. One of true, false
+            # Production setup must use OPSS (true) only
+            isOPSS: true
+            # Skip creation of Authenticator and Asserter. One of true, false
+            ldapSkip: false
+            # Location within container used for placing batch payment files
+            batchPymtLoc: /u01/app/lockbox
+            # Set it to "true" if this service will use SSO and must be configured with SAML 2.0
+            isSSOEnabled: false
+            # Private Key Alias of the keystore
+            keystoreAlias:
+            # Specify the SSLMode : "NO", "ONE_WAY"
+            dbSSLMode:
+            # Specify the DB SSL wallet type: SSO
+            dbWalletType:
+        wop:
+            # Name of the domain
+            # Used as prefix to tag related objects
+            domainUID: billingcare-domain
+            # Mount path where the create domain scripts are located inside a pod
+            domainScriptDir: /u01/weblogic
+            # Script that the create domain script uses to create a WebLogic domain
+            # and install and configure application
+            domainScript: create-billingcare-domain-job.sh
+            # Location within container where domain is created
+            domainRootDir: /shared
+            # Total number of managed servers forming the cluster
+            totalManagedServers: 5
+            # Number of managed servers to initially start for the domain
+            initialServerCount: 2
+            # NodePort where admin-server's http service will be accessible
+            adminChannelPort: 30711
+            # Enable T3 Service for admin-server. Default is false
+            exposeT3Channel: false
+            # NodePort where admin-server's T3 service will be accessible
+            t3ChannelPort: 30012
+            # Public address for T3Channel of the NetworkAccessPoint.  This value should be set to the
+            # kubernetes server address, which you can get by running "kubectl cluster-info".  If this
+            # value is not set to that address, WLST will not be able to connect from outside the
+            # kubernetes cluster
+            t3ChannelAddr: ''
+            # serverStartPolicy legal values are "NEVER", "IF_NEEDED", or "ADMIN_ONLY"
+            # This determines which WebLogic Servers the Operator will start up when it discovers this Domain
+            # - "NEVER" will not start any server in the domain
+            # - "ADMIN_ONLY" will start up only the administration server (no managed servers will be started)
+            # - "IF_NEEDED" will start all non-clustered servers, including the administration server and clustered servers up to the replica count
+            serverStartPolicy: 'IF_NEEDED'
+        monitoring:
+            isEnabled: false
+            imageRepository: tabxcnoper01.snlhrprshared1.gbucdsint02lhr.oraclevcn.com/patchset5/
+            # Name of the weblogic monitoring exporter image
+            imageName: oracle/weblogic-monitoring-exporter
+            imageTag: :2.0.2
+            # Image pull policy. One of Always, Never, IfNotPresent
+            imagePullPolicy: IfNotPresent
+            queries: []
+            # Duration at which Prometheus scrapes the target
+            scrapeInterval: 2s
+            # This flag can be set to true if the Prometheus is of Operator type
+            # This approach uses a ServiceMonitor to scrape metrics 
+            operator:
+                isEnabled: false
+        # Define rules for scheduling WebLogic Server pods on particular nodes
+        # either by using nodeSelector or affinity
+        nodeSelector: {}
+        affinity: {}
+
+    # Values used for Billing Care REST API and its domain
+    bcws:
+        # Boolean indicating to deploy, configure and start Billing Care
+        # Application Services
+        # - false: K8S resources meant for Billing Care Application will
+        #          not be created
+        # - true: Creates necessary K8S resources for using Billing Care
+        isEnabled: true
+        deployment:
+            # Name of the billingcare image
+            imageName: oracle/billingcare
+            # Tag associated with image, generally, patch-set number
+            # For non-empty tag, ":" MUST be prepended
+            imageTag: :common-it12-test2
+            # Image pull policy. One of Always, Never, IfNotPresent
+            imagePullPolicy: IfNotPresent
+        configEnv:
+            # Container's port for access to WebLogic Domain over HTTP
+            httpPort: 7011
+            # Create an OPSS or non-OPSS domain. One of true, false
+            # Production setup must use OPSS (true) only
+            isOPSS: false
+            # Skip creation of Authenticator and Asserter. One of true, false
+            ldapSkip: true
+            # Location within container used for placing batch payment files
+            batchPymtLoc: /u01/app/lockbox
+            # Private Key Alias of the keystore
+            keystoreAlias:
+            # Specify the SSLMode : "NO", "ONE_WAY"
+            dbSSLMode:
+            # Specify the DB SSL wallet type: SSO
+            dbWalletType:
+        wop:
+            # Name of the domain
+            # Used as prefix to tag related objects
+            domainUID: bcws-domain
+            # Mount path where the create domain scripts are located inside a pod
+            domainScriptDir: /u01/weblogic
+            # Script that the create domain script uses to create a WebLogic domain
+            # and install and configure application
+            domainScript: create-billingcare-domain-job.sh
+            # Location within container where domain is created
+            domainRootDir: /shared
+            # Total number of managed servers forming the cluster
+            totalManagedServers: 5
+            # Number of managed servers to initially start for the domain
+            initialServerCount: 2
+            # NodePort where admin-server's http service will be accessible
+            adminChannelPort: 30721
+            # Enable T3 Service for admin-server. Default is false
+            exposeT3Channel: false
+            # NodePort where admin-server's T3 service will be accessible
+            t3ChannelPort: 30022
+            # Public address for T3Channel of the NetworkAccessPoint.  This value should be set to the
+            # kubernetes server address, which you can get by running "kubectl cluster-info".  If this
+            # value is not set to that address, WLST will not be able to connect from outside the
+            # kubernetes cluster
+            t3ChannelAddr: ''
+            # serverStartPolicy legal values are "NEVER", "IF_NEEDED", or "ADMIN_ONLY"
+            # This determines which WebLogic Servers the Operator will start up when it discovers this Domain
+            # - "NEVER" will not start any server in the domain
+            # - "ADMIN_ONLY" will start up only the administration server (no managed servers will be started)
+            # - "IF_NEEDED" will start all non-clustered servers, including the administration server and clustered servers up to the replica count
+            serverStartPolicy: 'IF_NEEDED'
+        monitoring:
+            isEnabled: false
+            imageRepository: tabxcnoper01.snlhrprshared1.gbucdsint02lhr.oraclevcn.com/patchset5/
+            # Name of the weblogic monitoring exporter image
+            imageName: oracle/weblogic-monitoring-exporter
+            imageTag: :2.0.2
+            # Image pull policy. One of Always, Never, IfNotPresent
+            imagePullPolicy: IfNotPresent
+            queries: []
+            # Duration at which Prometheus scrapes the target
+            scrapeInterval: 2s
+            # This flag can be set to true if the Prometheus is of Operator type
+            # This approach uses a ServiceMonitor to scrape metrics
+            operator:
+                isEnabled: false
+        # Define rules for scheduling WebLogic Server pods on particular nodes
+        # either by using nodeSelector or affinity
+        nodeSelector: {}
+        affinity: {}
+
+ocpcc:
+
+    pcc:
+        isEnabled: false
+        labels:
+            # String used for forming names of PCC
+            # related resources
+            name: pcc
+            version: 12.0.0.7.0
+        deployment:
+            # Maximum time in seconds for a deployment to make progress before it is considered to be failed
+            deadlineSeconds: 1200
+            # The number of old ReplicaSets to retain to allow rollback
+            revisionHistLimit: 10
+            # Name of the pcc image
+            imageName: oracle/pcc
+            # Tag associated with image, generally, patch-set number
+            # For non-empty tag, ":" MUST be prepended
+            imageTag: :12.0.0.7.0
+            probe:
+                # Configurations for readiness probe
+                ready:
+                    # Number of seconds after the container has started before probe is initiated
+                    delayInSec: 200
+                    # How often (in seconds) to perform the probe 
+                    intervalInSec: 10
+                    # Minimum consecutive failures for the probe to be considered failed
+                    maxAttempts: 100
+            volMntKeyStore:
+                # Name of keystore volume; used only for mapping in YAML spec files
+                name: pcc-keystore-volume
+                # Path within the container where keystores will appear
+                mountPath: /u01/app/share/keystore
+            volMntLogs:
+                # Name of log volume; used only for mapping in YAML spec files
+                name: pcc-logs-volume
+                # Path within the container where log files will appear
+                mountPath: /u01/logs
+            volMntMetrics:
+                name: pcc-metrics-volume
+                mountPath: /u01/metrics
+        configEnv:
+            # Name of this configmap
+            name: pcc-configmap-env
+            # Container's port for access to WebLogic Domain over HTTP
+            httpPort: 7011
+            # Container's port for access to WebLogic Domain over HTTPS
+            httpsPort: 7012
+            # Enable SSL in WebLogic Domain. One of true, false
+            isSSLEnabled: true
+            # File type of SSL Identity and Trust store
+            keyStoreType: PKCS12
+            # Private Key Alias of the keystore
+            keyStoreAlias: __KEYSTORE_ALIAS__
+            # File name of the Identity Keystore
+            keyStoreIdentityFileName: identity.p12
+            # File name of the Trust Keystore
+            keyStoreTrustFileName: trust.p12
+            # Mode to use when starting the server. One of dev, prod
+            serverStartMode: prod
+            # User who will be granted Administrator rights to WebLogic Domain
+            adminUser: weblogic
+            # Container's port for access to WebLogic Domain over Administration Port
+            adminPort: 9012
+            # Separate administration traffic from application traffic. One of true, false
+            isAdminPortEnabled: false
+            # Database connection details where OPSS schema will be created
+            # DB Connection URL, valid formats:
+            # SSL enabled DB: (DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=__DB_HOST__)(PORT=__DB_SSL_PORT__))(CONNECT_DATA=(SERVICE_NAME=__DB_SERVICE_NAME__)))
+            # SSL disabled DB: __DB_HOST__:__DB_PORT__/__DB_SERVICE_NAME__ 
+            rcuJdbcURL: 
+            # Database adminstrator user name
+            rcuSysDBAUser: 
+            # Prefix for schemas of OPSS
+            rcuPrefix: PCCJRF12
+            # Drops existing OPSS schema already exists if true. One of true, false
+            rcuRecreate: true
+            #DBA role to create RCU schema
+            rcuDBARole: 
+            #Additional arguments to create rcu
+            rcuArgs: " "
+            # Components to install using the OUI Installer in a container
+            featureSets: PCC:12.0.0.7.0
+            installType: Custom
+            # Poid Id of service having permissions to access BRM
+            brmServicePoidId: 1
+            # Poid Type of service having permissions to access BRM
+            brmServiceType: /service/admin_client
+            # Login name of service having permissions to access BRM
+            brmRootLogin: root.0.0.0.1
+            # Server in WebLogic domain where application must be deployed
+            targetServer: AdminServer
+            # JavaPCM Log Level. One of 1(Error), 2(Warning), 3(Debug)
+            infranetLogLevel: 2
+            # Pipeline configuration center user
+            pccUser: pccuser
+        secretVal:
+            # Name of this secret
+            name: pcc-secret-vol
+            # Password of the WebLogic Domain's administrative user (configEnv.adminUser)
+            adminPassword: 
+            # Password to wallet storing sensitive data for BRM connection
+            walletPassword: 
+            # Password of the Database Administrator (configEnv.rcuSysDBAUser)
+            rcuSysDBAPassword: 
+            # Password of the OPSS schema (configEnv.rcuPrefix)
+            rcuSchemaPassword: 
+            # KeyPass of Identity Keystore
+            keyStoreIdentityKeyPass: 
+            # StorePass of Identity Keystore
+            keyStoreIdentityStorePass: 
+            # StorePass of Trust Keystore
+            keyStoreTrustStorePass: 
+            # Pipeline weblogic user password
+            pccUserPassword: 
+        secretKeyStore:
+            # A Secret object for keystore files
+            # Name of this secret
+            name: pcc-secret-keystores
+        storageClass:
+            name: pcc-file-vol
+        metrics:
+            configMap:
+              name: pcc-metrics-configmap
+            # Flag to enable metrics which will be used for monitoring
+            enabled: false
+        service:
+            # Name of the Service Object
+            name: pcc-service
+            # Type of the service
+            # NodePort allows access to application from outside
+            type: NodePort
+        monitoring: 
+            prometheus: 
+                  # This flag can be set to true if the Prometheus is of Operator type
+                  # This approach uses a ServiceMonitor to scrape metrics                   
+                  isEnabled: false
+                  # Namespace where Prometheus Operator is deployed
+                  namespace: monitoring
+
+ocrsm:
+
+    rsm:
+        isEnabled: false
+        labels:
+            # String used for forming names of BRM Rest Services Manager
+            name: brm-rest-services-manager
+            version: 12.0.0.7.0
+        deployment: 
+            # Maximum time in seconds for a deployment to make progress before it is considered to be failed
+            deadlineSeconds: 1200
+            # The number of old ReplicaSets to retain to allow rollback
+            revisionHistLimit: 10
+            imageName: oracle/brm-rest-services-manager
+            # Tag associated with image, generally, patch-set number
+            # # For non-empty tag, ":" MUST be prepended
+            imageTag: :12.0.0.7.0
+            sdk:
+                # SDK image name 
+                imageName: brm-rest-services-manager-extension
+                # SDK image tag, For non-empty tag, ":" MUST be prepended
+                imageTag: :1
+            probe:
+                # Configurations for readiness probe
+                ready:
+                    # Number of seconds after the container has started before probe is initiated
+                    delayInSec: 30
+                    # How often (in seconds) to perform the probe
+                    intervalInSec: 10
+                    # Minimum consecutive failures for the probe to be considered failed
+                    maxAttempts: 100
+            # Name of keystore volume which holds BRM Rest Services Manager SSL certificate       
+            volMntKeyStore:
+                name: rsm-keystore-volume
+            # Name of log volume mount,where log files are mounted
+            volMntLogs:
+                name: rsm-logs-volume
+            # Name of SDK volume mount, where SDK jar is mounted
+            volMntSDK:
+                name: rsm-sdk-volume
+            # Name of volume mount which holds all password as secret
+            volMntSecretEnv:
+                name: rsm-secret-env
+            # Name and path of volume mount which holds server security
+            volMntSecurity:
+                name: server-properties-volume-mnt
+                mountPath: /u01/oracle/app/restapi/security
+            # Name and path of volume mount which holds application's extenal properties
+            volMntAppExternalProperties:
+                name: app-external-properties-volume-mnt
+                mountPath: /u01/oracle/app/restapi/configuration/app
+        configEnv:
+            # Name of this configmap
+            name: brm-rest-services-manager-env-configmap
+            # Http container port on which application will be deployed
+            httpPort: 30000
+            # Https container port on which application will be deployed
+            httpsPort: 30001
+            # BRM Rest Services Manager SSL certificate file name,Mandatory if security is enabled
+            rsmCertificateFileName: __RSM_CERTIFICATE_FILE_NAME__
+            # Trust store file name
+            trustStoreFileName:
+            # BRM Root Login
+            brmRootLogin: root.0.0.0.1
+            # BRM Service Type
+            brmServiceType: /service/admin_client
+            # BRM Service POID
+            brmServicePoidId: 1
+            # BRM SSL Wallet File Name
+            brmSSLWalletFileName: cwallet.sso
+            # iBRM Rest Services Manager Extension Jar Filename ex: rsm-extension.jar
+            rsmExtensionJar: 
+            # BIP URL
+            bipUrl: __BIP_URL__
+            # BIP User
+            bipUserId: __BIP_USER_
+            # BRM Rest Services Manager Tracing Flag: true if Enabled false otherwise
+            isTracingEnabled: false
+            #Host name of the zipkin tracing collector
+            zipkinHostName:
+            #Port of the zipkin tracing collector
+            zipkinPort:
+            #Protocol of the zipkin tracing collector (e.g. http, https)
+            zipkinProtocol:
+            # BRM Rest Services Manager Base URL
+            baseURL:
+            # BRM RSM Cache Support: ‘true’ if enabled else ‘false’(default).
+            cacheEnabled: false
+            # BRM RSM Cache Type: set ‘private’(default) if not allowing proxies(shared cache) to cache the response, ‘public’ otherwise.
+            cacheType: private
+            # BRM RSM Cache max age: Time in seconds(default 24hr) until the response remains fresh(served from cache) after the response is generated.
+            cacheMaxAge: 86400
+            # BRM RSM Cache Services: RSM services that need to provide cache support. By default ‘describe’ service to support cache, where ‘describe’ is the resource locator for the describe api in the REST API Path. Multiple services with comma separated values can be provided if, needed.
+            cacheServices: describe
+            # BRM Rest Services Manager Security Flag: true if Enabled false otherwise
+            securityEnabled: true
+            #Security type is OAM/IDCS; By default application connects to IDCS for security.
+            securityType: IDCS
+            idcs:
+                # IDCS URL
+                idcsURI: __IDCS_URL__
+                # Client Id for token based authentication(IDCS Client ID)
+                clientID: __CLIENT_ID__
+                # IDCS Proxy Host
+                proxyHost:
+                # IDCS Scope Audience,Primary Audience URL is a mandatory entry while creating client in IDCS
+                # same has to be populated here for ex:http://localhost:8080/ 
+                scopeAudience: __SCOPE_AUDIENCE__
+                # IDCS Audience ,Secondary Audience is an optional attribute in IDCS,If Secondary Audience is 
+                # given in IDCS same should be populated here otherwise populate Primary Audience here
+                audience: __AUDIENCE_
+            oam:
+                # OAM domain name
+                domainName: __OAM_OAUTH_DOMAINNAME__
+                # OAM OAuth server name
+                audience: __OAM_OAUTH_SERVERNAME__
+                # OAM OAuth token endpoint
+                endpontURL: __OAM_OAUTH_TOKENENDPOINT__
+                # OAM OUD Host name
+                oudHostName: __OAM_OUD_HOSTNAME__
+                # OAM OUD Root user
+                oudRootUserDN: __OAM_OUD_ROOTUSERDN__
+                # OAM OUD Http port
+                oudHttpPort: 
+                # OAM OUD Https port
+                oudHttpsPort: 
+                # OAM OUD Base DN
+                oudUserBaseDN: __OAM_OUD_USERSDIRBASEDN__
+                # OAM OUD Group DN
+                oudGroupDN: __OAM_OUD_GROUPSDIRBASEDN__
+            # Log Level
+            logLevel: INFO
+            # Helidon Security Log Level
+            helidonSecurityLogLevel: INFO
+            # Helidon WebServer Log Level
+            helidonWebServerLogLevel: INFO
+            # Helidon Config Log Level
+            helidonConfigLogLevel: INFO
+            #Helidon MicroProfile Log Level
+            helidonMicroProfileLogLevel: INFO
+            #Helidon Common Log Level
+            helidonCommonLogLevel: INFO
+            #Netty Log Level
+            nettyServerLogLevel: INFO
+            #Jersey Log Level
+            jerseyLogLevel: INFO
+            #JBoss Weld Log Level
+            jbossWeldLogLevel: INFO
+            #Audit Log Level
+            auditLogLevel: INFO
+        secretKeyStore:
+            # Name of secret which copies certificates to container
+            name: brm-rest-services-manager-ssl-secret
+        secretVal:
+            # Name of the secret which stores all password
+            name: brm-rest-services-manger-env-secret
+            # BRM Rest Service Manager Certificate Password
+            rsmCertificatePassword: dG9vcg==
+            # BRM Infranet Wallet Password used to store BRM connection details to wallet, Wallet password should have one alpha and numeric value.
+            brmInfranetWalletPassword: UGFzc3cwcmQq
+            # BIP Password
+            bipPassword: 
+            # Client Secret required for token based authentication
+            clientSecret: UGFzc3cwcmQq
+            # OUD root user password
+            oudRootUserPassword:
+            # OUD certificate alias is any unique name for JDK keystore, required if https protocol is used.
+            oudCertificateAlias: 
+            #Trust store file password
+            trustStorePassword:
+
+        #Resources with which pods will start.For example:         
+        #resources:
+        #   limits:
+        #      cpu: 2
+        #      memory: 1024Mi
+        #   requests:
+        #      cpu: 1
+        #      memory: 512Mi
+        resources: {}
+        hpa:
+            isEnabled: false
+            # name of horizontal pod autoscaler
+            name: brm-rsm-hpa
+            # Minimum number of replicas to which application will be scaled down
+            minReplica: 2
+            # Maximum number of replicas application can scale up to
+            maxReplica: 4
+            # Percentage of the utilization of resource, at which HPA will be triggered.
+            targetCpu: 80
+            # Percentage of the utilization of resource, at which HPA will be triggered.
+            targetMemory: 80
+        service:
+            # Name of Service 
+            name: brm-rest-services-manager
+            # Service type
+            type: NodePort            
